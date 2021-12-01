@@ -11,11 +11,14 @@ def is_female(number):
 
 
 def date_to_str(row, date_name='date'):
-    date_str = str(row[date_name])
+    date_str = str(int(row[date_name]))
     return f'19{date_str[0:2]}-{date_str[2:4]}-{date_str[4:]}'
 
 
 class Model:
+    def __init__(self):
+        pass
+
     def get_accounts(self):
         df = open_csv('./data/account.csv')
         df['date'] = df.apply(date_to_str, axis=1)
@@ -69,14 +72,18 @@ class Model:
         df['date'] = df.apply(date_to_str, axis=1)
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
         df.loc[df['type'] == 'withdrawal', 'amount'] *= -1
-        df.loc[df['operation'].isna(), 'operation'] = df.loc[df['operation'].isna(), 'k_symbol']
+        df.loc[df['operation'].isna(
+        ), 'operation'] = df.loc[df['operation'].isna(), 'k_symbol']
         df = df.drop(['k_symbol', 'bank', 'account'], axis=1)
+        df = df.rename(columns={'date': 'trans_date', 'amount': 'trans_amount', 'type': 'trans_type'})
+
         return df
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,
                         format='%(levelname)s - %(message)s')
 
     model = Model()
-    df = model.get_transactions()
+    df = model.get_loans('test')
     print(df.head(20))
