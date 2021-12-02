@@ -71,6 +71,7 @@ class Model:
         df = open_csv(f'./data/trans_{op}.csv')
         df['date'] = df.apply(date_to_str, axis=1)
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+        df.loc[df['type'] == 'withdrawal in cash','type'] = 'withdrawal'
         df.loc[df['type'] == 'withdrawal', 'amount'] *= -1
         df.loc[df['operation'].isna(
         ), 'operation'] = df.loc[df['operation'].isna(), 'k_symbol']
@@ -85,5 +86,5 @@ if __name__ == '__main__':
                         format='%(levelname)s - %(message)s')
 
     model = Model()
-    df = model.get_loans('test')
-    print(df.head(20))
+    df = model.get_transactions('train')
+    print(df['trans_type'].unique())
