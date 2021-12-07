@@ -1,9 +1,9 @@
 import logging
 import pandas as pd
-
+from sklearn.impute import SimpleImputer
 
 def open_csv(filename, format=None):
-    return pd.read_csv(filename, sep=';', low_memory=False)
+    return pd.read_csv(filename, sep=';', dtype={'k_symbol': str, 'bank': str}, na_values=['?'])
 
 
 def is_female(number):
@@ -56,6 +56,16 @@ class Model:
         # TODO: Remover mais tarde o name
         df = df.rename(columns={'code ': 'district_id',
                        'name ': 'district_name'})
+        
+        imp_mean = SimpleImputer(strategy='mean')
+        imp_mean.fit(df[[
+            'unemploymant rate \'95 ',
+            'no. of commited crimes \'95 ']])
+        df[[
+            'unemploymant rate \'95 ',
+            'no. of commited crimes \'95 ']] = imp_mean.transform(df[[
+                'unemploymant rate \'95 ',
+                'no. of commited crimes \'95 ']])
         return df
 
     def get_loans(self, op='test'):
@@ -86,5 +96,5 @@ if __name__ == '__main__':
                         format='%(levelname)s - %(message)s')
 
     model = Model()
-    df = model.get_transactions('train')
-    print(df['trans_type'].unique())
+    df = model.get_districts()
+    print(df)
