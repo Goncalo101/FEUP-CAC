@@ -71,3 +71,12 @@ def std_ccw_op(trans_op):
 
 def std_interest_op(trans_op):
     return np.std(trans_op == 'interest credited')
+
+def bal_min(balance):
+    return balance.abs().min()
+
+def bal_range(balance):
+    return balance.max() - balance.min()
+
+def days(trans_date):
+    return (trans_date.max() - trans_date.min()).days
