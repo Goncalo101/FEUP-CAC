@@ -1,6 +1,7 @@
 import logging
 import pandas as pd
-from sklearn.impute import SimpleImputer
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
 
 def open_csv(filename, format=None):
     return pd.read_csv(filename, sep=';', dtype={'k_symbol': str, 'bank': str}, na_values=['?'])
@@ -26,9 +27,10 @@ class Model:
         return df
 
     def get_cards(self, op='test'):
-        df = open_csv(f'./data/client_{op}.csv')
-        df['date'] = df.apply(date_to_str, axis=1, args=['issued'])
-        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+        df = open_csv(f'./data/card_{op}.csv')
+        df['card_date'] = df.apply(date_to_str, axis=1, args=['issued'])
+        df['card_date'] = pd.to_datetime(df['card_date'], format='%Y-%m-%d')
+        df = df.drop(['issued'], axis=1)
         return df
 
     def get_clients(self):
@@ -48,7 +50,8 @@ class Model:
 
     def get_disps(self):
         df = open_csv('./data/disp.csv')
-        df = df.drop(['disp_id'], axis=1)
+        # df = df.drop(['disp_id'], axis=1)
+        df = df[df['type'] == 'OWNER']
         return df
 
     def get_districts(self):
@@ -57,7 +60,7 @@ class Model:
         df = df.rename(columns={'code ': 'district_id',
                        'name ': 'district_name'})
         
-        imp_mean = SimpleImputer(strategy='mean')
+        imp_mean = IterativeImputer(random_state=42)
         imp_mean.fit(df[[
             'unemploymant rate \'95 ',
             'no. of commited crimes \'95 ']])
@@ -66,6 +69,18 @@ class Model:
             'no. of commited crimes \'95 ']] = imp_mean.transform(df[[
                 'unemploymant rate \'95 ',
                 'no. of commited crimes \'95 ']])
+
+        df['crime_rate \'95'] = df['no. of commited crimes \'95 '] / df['no. of inhabitants']
+        df['crime_rate \'96'] = df['no. of commited crimes \'96 '] / df['no. of inhabitants']
+        df = df.drop(['no. of commited crimes \'95 ', 'no. of commited crimes \'96 '], axis=1)
+
+        df['small_munis_rate'] = df['no. of municipalities with inhabitants < 499 '] / (df['no. of municipalities with inhabitants < 499 '] + df['no. of municipalities with inhabitants 500-1999'] + df['no. of municipalities with inhabitants 2000-9999 '] + df['no. of municipalities with inhabitants >10000 '])
+        df['medium_munis_rate'] = df['no. of municipalities with inhabitants 500-1999'] / (df['no. of municipalities with inhabitants < 499 '] + df['no. of municipalities with inhabitants 500-1999'] + df['no. of municipalities with inhabitants 2000-9999 '] + df['no. of municipalities with inhabitants >10000 '])
+        df['large_munis_rate'] = df['no. of municipalities with inhabitants 2000-9999 '] / (df['no. of municipalities with inhabitants < 499 '] + df['no. of municipalities with inhabitants 500-1999'] + df['no. of municipalities with inhabitants 2000-9999 '] + df['no. of municipalities with inhabitants >10000 '])
+        df['larger_munis_rate'] = df['no. of municipalities with inhabitants >10000 '] / (df['no. of municipalities with inhabitants < 499 '] + df['no. of municipalities with inhabitants 500-1999'] + df['no. of municipalities with inhabitants 2000-9999 '] + df['no. of municipalities with inhabitants >10000 '])
+        df = df.drop(['no. of municipalities with inhabitants < 499 ', 'no. of municipalities with inhabitants 500-1999', 'no. of municipalities with inhabitants 2000-9999 ', 'no. of municipalities with inhabitants >10000 '], axis=1)
+
+        df['inhabitant_rate'] = df['no. of inhabitants'] / sum(df['no. of inhabitants'])
         return df
 
     def get_loans(self, op='test'):
@@ -97,4 +112,4 @@ if __name__ == '__main__':
 
     model = Model()
     df = model.get_districts()
-    print(df)
+    print(df.loc[df['district_name'] == 'Jesenik', 'unemploymant rate \'95 '])
