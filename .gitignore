@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 .DS_Store
 
-train.csv
-test.csv
+train*.csv
+test*.csv
