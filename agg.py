@@ -78,5 +78,23 @@ def bal_min(balance):
 def bal_range(balance):
     return balance.max() - balance.min()
 
-def days(trans_date):
+def days_between(trans_date):
     return (trans_date.max() - trans_date.min()).days
+
+def ccount_credit_op(trans_op):
+    return sum(trans_op == 2)
+
+def ccount_collection_op(trans_op):
+    return sum(trans_op == 0)
+
+def ccount_withdrawal_op(trans_op):
+    return sum(trans_op == 5)
+
+def ccount_remittance_op(trans_op):
+    return sum(trans_op == 4)
+
+def ccount_ccw_op(trans_op):
+    return sum(trans_op == 1)
+
+def ccount_interest_op(trans_op):
+    return sum(trans_op == 3)
